@@ -68,6 +68,7 @@ def _format_code(source,
                  summary_wrap_length=79,
                  description_wrap_length=72,
                  pre_summary_newline=False,
+                 post_summary_newline=False,
                  post_description_blank=True,
                  force_wrap=False,
                  line_range=None):
@@ -116,6 +117,7 @@ def _format_code(source,
                 summary_wrap_length=summary_wrap_length,
                 description_wrap_length=description_wrap_length,
                 pre_summary_newline=pre_summary_newline,
+                post_summary_newline=post_summary_newline,
                 post_description_blank=post_description_blank,
                 force_wrap=force_wrap)
 
@@ -135,6 +137,7 @@ def format_docstring(indentation, docstring,
                      summary_wrap_length=0,
                      description_wrap_length=0,
                      pre_summary_newline=False,
+                     post_summary_newline=False,
                      post_description_blank=True,
                      force_wrap=False):
     """Return formatted version of docstring.
@@ -202,7 +205,8 @@ def format_docstring(indentation, docstring,
         return wrap_summary('"""' + normalize_summary(contents) + '"""',
                             wrap_length=summary_wrap_length,
                             initial_indent=indentation,
-                            subsequent_indent=indentation).strip()
+                            subsequent_indent=indentation,
+                            post_summary_newline=post_summary_newline).strip()
 
 
 def reindent(text, indentation):
@@ -366,14 +370,20 @@ def normalize_summary(summary):
     return summary
 
 
-def wrap_summary(summary, initial_indent, subsequent_indent, wrap_length):
+def wrap_summary(summary, initial_indent, subsequent_indent, wrap_length,
+                 post_summary_newline):
     """Return line-wrapped summary text."""
     if wrap_length > 0:
-        return '\n'.join(
-            textwrap.wrap(summary,
-                          width=wrap_length,
-                          initial_indent=initial_indent,
-                          subsequent_indent=subsequent_indent)).strip()
+        lines = textwrap.wrap(summary,
+                              width=wrap_length,
+                              initial_indent=initial_indent,
+                              subsequent_indent=subsequent_indent,
+                              )
+        if post_summary_newline and len(lines) > 1:
+            lines[-1] = lines[-1].replace('"""', '')
+            lines.append(initial_indent + '"""')
+
+        return '\n'.join(lines).strip()
     else:
         return summary
 
@@ -494,6 +504,7 @@ def _format_code_with_args(source, args):
         summary_wrap_length=args.wrap_summaries,
         description_wrap_length=args.wrap_descriptions,
         pre_summary_newline=args.pre_summary_newline,
+        post_summary_newline=args.post_summary_newline,
         post_description_blank=args.post_description_blank,
         force_wrap=args.force_wrap,
         line_range=args.line_range)
@@ -521,6 +532,10 @@ def _main(argv, standard_out, standard_error, standard_in):
     parser.add_argument('--pre-summary-newline',
                         action='store_true',
                         help='add a newline before the summary of a '
+                             'multi-line docstring')
+    parser.add_argument('--post-summary-newline',
+                        action='store_true',
+                        help='add a newline after the summary of a '
                              'multi-line docstring')
     parser.add_argument('--force-wrap', action='store_true',
                         help='force descriptions to be wrapped even if it may '
