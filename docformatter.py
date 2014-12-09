@@ -194,7 +194,8 @@ def format_docstring(indentation, docstring,
             summary=wrap_summary(normalize_summary(summary),
                                  wrap_length=summary_wrap_length,
                                  initial_indent=initial_indent,
-                                 subsequent_indent=indentation).lstrip(),
+                                 subsequent_indent=indentation,
+                                 post_summary_newline=False).lstrip(),
             description=wrap_description(description,
                                          indentation=indentation,
                                          wrap_length=description_wrap_length,
@@ -535,8 +536,8 @@ def _main(argv, standard_out, standard_error, standard_in):
                              'multi-line docstring')
     parser.add_argument('--post-summary-newline',
                         action='store_true',
-                        help='add a newline after the summary of a '
-                             'multi-line docstring')
+                        help='add a newline after multi-line docstrings '
+                             'which do not contain a description')
     parser.add_argument('--force-wrap', action='store_true',
                         help='force descriptions to be wrapped even if it may '
                              'result in a mess')
